@@ -1,15 +1,22 @@
+const _ = require("lodash");
+const sharedConfig = require("./lib/config");
 const { getNextInterval } = require("./lib/date-helpers");
 const { memorizationControls } = require("./lib/ui-helpers");
-const _ = require("lodash");
 
+// Each of these options can be overridden when invoking the skill
+// Ex: gopher.use(memorizeSkill({defaultFrequencyPref: 3}));
 const configDefaults = {
-  defaultFrequencyPref: 1
+  defaultFrequencyPref: 1,
+  frequencyPrefOptions: [0.1, 0.2, 0.5, 1, 1.5, 2, 5],
+  decayExponent: 2.5 // (reminderCount ^ decayExponent) * frequencyPref;
 };
 
-module.exports = function(config) {
-  return function(request, response, next) {
+module.exports = function(gopherApp, config) {
+  gopherApp.use(function(request, response, next) {
     const gopher = response.locals.gopher || {};
     const memConfig = Object.assign({}, gopher.config, configDefaults, config);
+    // Set config to share with other modules
+    sharedConfig.setConfig(memConfig);
 
     gopher.skills.memorize = {};
     const memSkills = {
@@ -26,7 +33,7 @@ module.exports = function(config) {
         );
         gopher.webhook.setTaskData({
           frequency_pref: frequencyPref,
-          reminder_count: reminderCount
+          reminder_count: reminderCount + 1
         });
         const nextReminder = getNextInterval(reminderCount, frequencyPref);
         gopher.webhook.setTriggerTimestamp(nextReminder);
@@ -64,6 +71,7 @@ module.exports = function(config) {
        * @returns {Array} Gopher Email UI Objects
        */
       renderMemorizationControls() {
+        // UI
         const reminderCount = gopher.webhook.getTaskData("reminder_count", 1);
         const frequencyPref = gopher.webhook.getTaskData(
           "frequency_pref",
@@ -162,5 +170,5 @@ module.exports = function(config) {
     };
     gopher.skills.memorize = memSkills;
     next();
-  };
+  });
 };
