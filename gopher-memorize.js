@@ -7,12 +7,7 @@ module.exports = function(gopherApp, config) {
   /**
    * Set up config
    */
-  const configDefaults = {
-    defaultFrequencyPref: 1,
-    frequencyPrefOptions: [0.1, 0.2, 0.5, 1, 1.5, 2, 5],
-    decayExponent: 2.5 // (reminderCount ^ decayExponent) * frequencyPref;
-  };
-  const memConfig = Object.assign({}, gopherApp.config, configDefaults, config);
+  const memConfig = Object.assign({}, gopherApp.config, config);
   sharedConfig.setConfig(memConfig); // Shares config with helpers
 
   /**
@@ -20,28 +15,26 @@ module.exports = function(gopherApp, config) {
    * @param {object} gopher
    */
   function memorizeTask(gopher) {
-    const reminderCount = gopher.webhook.getTaskData("reminder_count", 1);
+    const reminderCount = gopher.webhook.getTaskData("mem.reminder_count", 1);
     const frequencyPref = gopher.webhook.getTaskData(
-      "frequency_pref",
+      "mem.frequency_pref",
       memConfig.defaultFrequencyPref
     );
-    gopher.webhook.setTaskData({
-      frequency_pref: frequencyPref,
-      reminder_count: reminderCount + 1
-    });
+    gopher.webhook.setTaskData("mem.reminder_count", reminderCount + 1);
+    gopher.webhook.setTaskData("mem.frequency_pref", frequencyPref);
     const nextReminder = getNextInterval(reminderCount, frequencyPref);
     gopher.webhook.setTriggerTimestamp(nextReminder);
     return nextReminder;
   }
 
   /**
-   * Render UI to change memorization frequency
+   * Render UI to show and change memorization frequency
    * @param {object} gopher
    */
   function renderMemorizationControls(gopher) {
-    const reminderCount = gopher.webhook.getTaskData("reminder_count", 1);
+    const reminderCount = gopher.webhook.getTaskData("mem.reminder_count", 1);
     const frequencyPref = gopher.webhook.getTaskData(
-      "frequency_pref",
+      "mem.frequency_pref",
       memConfig.defaultFrequencyPref
     );
     const userTimezone = gopher.get("user.timezone", "GMT");
@@ -54,19 +47,11 @@ module.exports = function(gopherApp, config) {
   }
 
   /**
-   * Get info about the memorization
-   * @param {object} gopher
-   */
-  function cancel(gopher) {
-    return gopher.webhook.completeTask();
-  }
-
-  /**
    * Change memorization frequency
    * @param {Number} freq Floating point number
    */
   function changeMemFrequency(gopher, freq) {
-    gopher.webhook.setTaskData({ frequency_pref: freq });
+    gopher.webhook.setTaskData("mem.frequency_pref", freq);
     return memorizeTask(gopher); // Recalculate due date based on newly set pref
   }
 
@@ -74,9 +59,9 @@ module.exports = function(gopherApp, config) {
    * Get info about the memorization
    */
   function getMemInfo(gopher) {
-    const reminderCount = gopher.webhook.getTaskData("reminder_count", 1);
+    const reminderCount = gopher.webhook.getTaskData("mem.reminder_count", 1);
     const frequencyPref = gopher.webhook.getTaskData(
-      "frequency_pref",
+      "mem.frequency_pref",
       memConfig.defaultFrequencyPref
     );
     return { reminderCount, frequencyPref };
@@ -103,7 +88,6 @@ module.exports = function(gopherApp, config) {
     memorizeTask,
     renderMemorizationControls,
     changeMemFrequency,
-    cancel,
     getMemInfo
   };
 };
