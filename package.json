@@ -1,6 +1,6 @@
 {
   "name": "gopher-memorize",
-  "version": "0.0.5-alpha",
+  "version": "0.0.6-alpha",
   "description": "Gopher.email middleware skill for spaced repetition memorization",
   "main": "gopher-memorize.js",
   "scripts": {

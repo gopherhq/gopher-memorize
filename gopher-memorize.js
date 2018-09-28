@@ -1,7 +1,11 @@
 const _ = require("lodash");
 const sharedConfig = require("./lib/config");
 const memConfig = sharedConfig.memConfig;
-const { getNextInterval } = require("./lib/date-helpers");
+const {
+  getNextInterval,
+  getFutureIntervals,
+  getFriendlyDates
+} = require("./lib/date-helpers");
 const {
   memorizationControls,
   didYouRemember,
@@ -44,17 +48,25 @@ module.exports = function(gopherApp, instanceConfig) {
 
     settingsForm.populate(gopher.webhook.getExtensionData("mem"));
 
-    //     settingsForm.text(`
-    // **Memorization Summary**
-    // Here are your current memorization options, with **1** being the default for all new memorizations. Change settings above to adjust these settings.
-    // **0.1** – 3 days, 6 days, 12 days
-    // **0.2** – 5 days, 8 days, 12 days
-    // **0.5** – 5 days, 8 days, 12 days
-    // **1** – 5 days, 8 days, 12 days
-    // **1.5** – 5 days, 8 days, 12 days
-    // **2** – 5 days, 8 days, 12 days
-    // **5** – 5 days, 8 days, 12 days
-    // `);
+    function getIntervalDescription(frequencyOption) {
+      let intervalSentence = `\n\n**${frequencyOption}** – `;
+      intervalSentence += getFutureIntervals(10, frequencyOption)
+        .map(unixTime => getFriendlyDates({ unixTime }))
+        .map(
+          friendlyDate =>
+            friendlyDate.daysInFuture
+              ? `${friendlyDate.daysInFuture} days`
+              : `${friendlyDate.hoursInFuture} hours`
+        )
+        .join(", ");
+      return intervalSentence;
+    }
+    const preferenceDescriptions = _getFrequencyOptions(gopher)
+      .map(pref => getIntervalDescription(pref))
+      .join("\n\n");
+    settingsForm.text(
+      `**Frequency Option Schedules** \n\n${preferenceDescriptions}`
+    );
   });
 
   gopherApp.beforeSettingsSaved(gopher => {
