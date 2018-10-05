@@ -22,31 +22,32 @@ module.exports = function(gopherApp, instanceConfig) {
   // gopherApp.config = sharedConfig.memConfig; // Share with gopherApp
 
   gopherApp.onSettingsViewed(gopher => {
-    const settingsForm = gopher.webhook.settingsForm({
+    const settingsPage = gopher.webhook.settingsPage({
       namespace: "mem",
-      title: "Memorization Settings"
+      title: "Memorization Settings",
+      menuTitle: "Memorization"
     });
 
-    settingsForm.input({
+    settingsPage.input({
       name: "defaultFrequencyPref",
       title: "Default Frequency",
       placeholder: "Enter a default frequency",
-      defaultValue: memConfig.defaultFrequencyPref,
+      defaultValue: String(memConfig.defaultFrequencyPref),
       helpText: `Start memorizations using this frequency`
     });
 
-    settingsForm.input({
+    settingsPage.input({
       name: "frequencyOptions",
       title: "Frequency Options",
-      defaultValue: memConfig.frequencyOptions.join(","),
+      defaultValue: String(memConfig.frequencyOptions.join(",")),
       helpText: `Alternate memorization frequencies. (The "seldom" to "often" email buttons.)`
     });
 
-    settingsForm.submitButton({
+    settingsPage.submitButton({
       submitText: "Save Settings"
     });
 
-    settingsForm.populate(gopher.webhook.getExtensionData("mem"));
+    settingsPage.populate(gopher.webhook.getExtensionData("mem"));
 
     function getIntervalDescription(frequencyOption) {
       let intervalSentence = `\n\n**${frequencyOption}** – `;
@@ -64,7 +65,7 @@ module.exports = function(gopherApp, instanceConfig) {
     const preferenceDescriptions = _getFrequencyOptions(gopher)
       .map(pref => getIntervalDescription(pref))
       .join("\n\n");
-    settingsForm.text(
+    settingsPage.text(
       `**Frequency Option Schedules** \n\n${preferenceDescriptions}`
     );
   });
