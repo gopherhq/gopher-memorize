@@ -32,13 +32,26 @@ gopherApp.listen();
 
 ### Spaced Repetition Algorithm
 
-The reminder spacing is determined by this simple formula:
+Conceptually, here is how it works
 
-`daysUntilNextReminder = (numReminders ^ decayExponent) * frequencyPref`
+- Assume we have a spaced repititon sequence. For example, reminders that trigger after 1, 2, 3, 5, 8, ... days
+- The `reminderNumber` reflects where the user is in that sequence. If user just started, their reminderNumber is `0`, and their first reminder will be after 1 day.
+- When a reminder triggers:
+  - If the recipient succesfully remembered, `reminderNumber` increments by one, spacing the next reminder further than the last. (In the above example, the reminderNumber becomes `1` and the next reminder is two days out).
+  - If the recipient did not remember, `reminderNumber` decrements by one, spacing the next reminder closer than the last. It does not, however, go below zero.
+  - If a user does not respond, the reminder is re-sent a few times, then gets shut off automatically.
 
-For example, a user has received 3 reminders already, the [decay exponent](https://www.wikiwand.com/en/Exponential_decay) is 2.5 and this particular task they have a frequency preference of .5. Their next reminder would be in 7.79 days.
+Most of the customizeability lies in altering the spaced repeition sequence. This sequence can be tuned to suit different memorization scenarios.
 
-This is naive implementation and leaves room for improvement. See `date-helpers.js`. PRs are welcome!
+`daysUntilNextReminder = (reminderNumber ^ decayExponent) * frequencyPref`
+
+- `frequencyPref` A user-editable frequency multiplier for different types of memorizations.
+- `reminderNumbe` Which numer in the spaced repetition sequence we are on (described above)
+- `decayExponent` How quickly the reminders spread out. (default 2.5). Not configurable by end-user (yet).
+
+For example, a user is on their 3 reminder in in the spaced repedition sequence, the [decay exponent](https://www.wikiwand.com/en/Exponential_decay) is 2.5 and this particular task they have a frequency preference of .5. Their next reminder would be in 7.79 days.
+
+There is room for improvement and specialization for specific types of memorizations. PRs are welcome, or fork this project and make your own Gopher Extension with a memorization skill.
 
 ### Config
 

@@ -1,0 +1,98 @@
+{
+  "source": {
+    "type": "email",
+    "recipient": "a+mem.freq.50+t.3485+memorize+c407c8@gopher.email",
+    "from": "esweetland@gmail.com",
+    "method": "bcc",
+    "to": ["a+mem.freq.50+t.3485+memorize+c407c8@gopher.email"],
+    "cc": [],
+    "bcc": [],
+    "subject": "Hit 'send' to update memorization schedule",
+    "html": "<p>Your memorization schedule will be: 11 hours, 2 days, 7 days, 15 days, 27 days, 44 days, 64 days, 90 days, 121 days, 158 days from from now..</p><p><br></p><p>Each time you successfully remember, you will move to the next further interval.</p>",
+    "text": "<p>Your memorization schedule will be: 11 hours, 2 days, 7 days, 15 days, 27 days, 44 days, 64 days, 90 days, 121 days, 158 days from from now..</p><p><br></p><p>Each time you successfully remember, you will move to the next further interval.</p>",
+    "headers": {
+      "to": "a+mem.freq.50+t.3485+memorize+c407c8@gopher.email",
+      "cc": [],
+      "bcc": [],
+      "subject": "Hit 'send' to update memorization schedule",
+      "from": "esweetland@gmail.com",
+      "reply-to": ""
+    }
+  },
+  "action": {
+    "format": "mem.freq.50",
+    "full_address": "a+mem.freq.50+t.3485+memorize+c407c8@gopher.email",
+    "open": false
+  },
+  "event": "task.action_received",
+  "version": "1",
+  "user": {
+    "name": "Joe Schmoe",
+    "primary_email": "esweetland@gmail.com",
+    "emails": ["esweetland@gmail.com"],
+    "is_validated": true,
+    "timezone": "America/Los_Angeles",
+    "preferred_date_format": "D, F jS Y g:ia T",
+    "preferred_date_format_js": "ddd, D MMM 'YY [at] h:mma z",
+    "postpone_times": "8h,1d,3d",
+    "flagged": 0,
+    "validate_sender_email": false,
+    "send_dev_errors": false
+  },
+  "extension": {
+    "name": "memorize",
+    "subdomain": "memorize",
+    "stored_data": {},
+    "installed": true,
+    "event_url": "http://localhost/api/v1/extension_event/224/7a359f228b11aa87/",
+    "id": 15,
+    "owner": {
+      "email": "esweetland@gmail.com"
+    },
+    "description": "Sends reminders repeatedly over longer and longer intervals to help you remember things.",
+    "icon": "https://fut-cdn.s3.amazonaws.com/gopher/memorize_icon.png",
+    "autocomplete_examples": "memorize@memorize.gopher.email",
+    "tags": "",
+    "published": true,
+    "devmode": false,
+    "enabled": true,
+    "install_url": "http://memorize.ngrok.io/auth/login",
+    "settings_url": "http://memorize.ngrok.io",
+    "base_url": "http://memorize.ngrok.io/",
+    "developer_name": "",
+    "help_url": "",
+    "learn_more_url": "",
+    "privacy_policy_url": "",
+    "oauth2_client_id": "ext_772301a1d150c3417cf09851c722dd41",
+    "oauth2_scope": "get_user_info extension_manage_self manage_own_tasks read_own_tasks",
+    "oauth2_redirect_uri": "http://memorize.ngrok.io/auth/callback"
+  },
+  "task": {
+    "created": 1539138145,
+    "completed": false,
+    "completed_on": "",
+    "hash": "9e7b78da5030dc5124138dee01c25f76",
+    "id": 3485,
+    "trigger_time": 1539224563,
+    "trigger_timeformat": "1day",
+    "reference_email": {
+      "to": ["memorize@memorize.gopher.email"],
+      "cc": [],
+      "bcc": [],
+      "from": "esweetland@gmail.com",
+      "reply_to": "",
+      "subject": "Test",
+      "html": "<p>Test</p>",
+      "text": " Test ",
+      "attachments": []
+    },
+    "command": "memorize@memorize.gopher.email",
+    "stored_data": {
+      "mem": {
+        "reminder_num": 0,
+        "frequency_pref": 100
+      },
+      "repeat_last_reminder_ct": 1
+    }
+  }
+}
