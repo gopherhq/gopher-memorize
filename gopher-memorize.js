@@ -107,7 +107,8 @@ module.exports = function(gopherApp, instanceConfig) {
       text: "Yes",
       subject: "Yes, I remembered",
       body: `
-Great! You remembered for ${howFarInFutureCurrent}. Now let's try ${howFarInFuture}.<br /><br />
+Great! You remembered for ${howFarInFutureCurrent}. Now let's try ${howFarInFuture}.
+
 Here is your current memorization schedule: ${currentIntervalSentence}`
     };
 
@@ -125,9 +126,8 @@ Here is your current memorization schedule: ${currentIntervalSentence}`
       action: `mem.check.no`,
       text: "No",
       subject: "Not quite",
-      body: `
-No problem, we waited ${howFarInFutureCurrent} to send this reminder. Let's try ${noHowFarInFuture} for the next one.<br /><br />
-Here is your current memorization schedule: ${currentIntervalSentence} <br/><br />`
+      body: `No problem, we waited ${howFarInFutureCurrent} to send this reminder. Let's try ${noHowFarInFuture} for the next one.\n
+Here is your current memorization schedule: ${currentIntervalSentence}\n\n`
     };
 
     return [
