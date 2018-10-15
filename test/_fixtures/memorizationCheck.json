@@ -56,16 +56,16 @@
     "published": true,
     "devmode": false,
     "enabled": true,
-    "install_url": "http://memorize.ngrok.io/auth/login",
-    "settings_url": "http://memorize.ngrok.io",
-    "base_url": "http://memorize.ngrok.io/",
+    "install_url": "http://localhost/auth/login",
+    "settings_url": "http://localhost",
+    "base_url": "http://localhost/",
     "developer_name": "",
     "help_url": "",
     "learn_more_url": "",
     "privacy_policy_url": "",
     "oauth2_client_id": "ext_772301a1d150c3417cf09851c722dd41",
     "oauth2_scope": "get_user_info extension_manage_self manage_own_tasks read_own_tasks",
-    "oauth2_redirect_uri": "http://memorize.ngrok.io/auth/callback"
+    "oauth2_redirect_uri": "http://localhost/auth/callback"
   },
   "task": {
     "created": 1539113630,

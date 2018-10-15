@@ -1,88 +1,32 @@
 const _ = require("lodash");
-const sharedConfig = require("./lib/config");
-const memConfig = sharedConfig.memConfig;
+const {
+  memConfig,
+  setConfig,
+  getFrequencyOptions,
+  getCurrentFrequencyPref
+} = require("./lib/config");
 const {
   getNextInterval,
   getFutureIntervals,
   getFriendlyDates
 } = require("./lib/date-helpers");
-
 const {
-  memorizationControls,
   changeFrequencyButtonsWithChart,
   getFutureIntervalSentence,
-  renderRepeatMessage
+  renderRepeatMessage,
+  renderFrequencyIllustration,
+  changeFrequencyButtons
 } = require("./lib/ui-helpers");
 
 module.exports = function(gopherApp, instanceConfig) {
-  /**
-   * Set up config
-   */
+  // Set up config
   Object.assign(gopherApp.config, memConfig, instanceConfig);
 
-  sharedConfig.setConfig(gopherApp.config); // Share config with helpers
-  // gopherApp.config = sharedConfig.memConfig; // Share with gopherApp
+  // Share config with helpers
+  setConfig(gopherApp.config);
 
-  gopherApp.onSettingsViewed(gopher => {
-    const settingsPage = gopher.webhook.settingsPage({
-      namespace: "mem",
-      title: "Memorization Settings",
-      menuTitle: "Memorization"
-    });
-
-    settingsPage.input({
-      name: "defaultFrequencyPref",
-      title: "Default Frequency",
-      placeholder: "Enter a default frequency",
-      defaultValue: String(memConfig.defaultFrequencyPref),
-      helpText: `Start memorizations using this frequency`
-    });
-
-    settingsPage.input({
-      name: "frequencyOptions",
-      title: "Frequency Options",
-      defaultValue: String(memConfig.frequencyOptions.join(",")),
-      helpText: `Alternate memorization frequencies. (The "seldom" to "often" email buttons.)`
-    });
-
-    settingsPage.submitButton({
-      submitText: "Save Settings"
-    });
-
-    settingsPage.populate(gopher.webhook.getExtensionData("mem"));
-
-    function getIntervalDescription(frequencyOption) {
-      let intervalSentence = `\n\n**${frequencyOption}** – `;
-      intervalSentence += getFutureIntervals(10, frequencyOption)
-        .map(unixTime => getFriendlyDates({ unixTime }))
-        .map(
-          friendlyDate =>
-            friendlyDate.daysInFuture
-              ? `${friendlyDate.daysInFuture} days`
-              : `${friendlyDate.hoursInFuture} hours`
-        )
-        .join(", ");
-      return intervalSentence;
-    }
-    const preferenceDescriptions = _getFrequencyOptions(gopher)
-      .map(pref => getIntervalDescription(pref))
-      .join("\n\n");
-    settingsPage.text(
-      `**Frequency Option Schedules** \n\n${preferenceDescriptions}`
-    );
-  });
-
-  gopherApp.beforeSettingsSaved(gopher => {
-    const action = gopher.get("settings.url_params.action");
-    // TODO: Validate numbers
-    return true;
-    // return {
-    //   webhook: {
-    //     status: "warning",
-    //     message: "This is  a warning message"
-    //   }
-    // };
-  });
+  // Load sub-skills
+  gopherApp.loadSkill(__dirname + "/skills");
 
   /**
    * Start memorizing task
@@ -107,6 +51,11 @@ module.exports = function(gopherApp, instanceConfig) {
     return nextReminder;
   }
 
+  /**
+   * Middleware that that runs the above memorizeTask function based on
+   * certain criteria of the newly created task.
+   * @param {config} param0
+   */
   function memorizeTasksMiddleware({ commandMatch } = {}) {
     return function createMemMiddleware(req, res, next) {
       const gopher = res.locals.gopher;
@@ -127,31 +76,39 @@ module.exports = function(gopherApp, instanceConfig) {
    */
   function renderDidYouRemember(gopher) {
     const reminderNum = gopher.webhook.getTaskData("mem.reminder_num", 0);
-    const frequencyPref = _getCurrentFrequencyPref(gopher);
+    const frequencyPref = getCurrentFrequencyPref(gopher);
     const userTimezone = gopher.get("user.timezone", "GMT");
-
-    // User remembered
-    const yesNextTime = getNextInterval(reminderNum, frequencyPref);
     const exampleIntervalStarting =
       reminderNum == 0 ? reminderNum : reminderNum - 1;
+
+    // Current reminder info
+    const nexTimeCurrent = getNextInterval(reminderNum, frequencyPref);
+    const {
+      friendlyDate: friendlyDateYes,
+      howFarInFuture: howFarInFutureCurrent
+    } = getFriendlyDates({
+      unixTime: nexTimeCurrent,
+      userTimezone
+    });
+    // User remembered
+    const yesNextTime = getNextInterval(reminderNum + 1, frequencyPref);
     const { friendlyDate: yesFriendlyDate, howFarInFuture } = getFriendlyDates({
       unixTime: yesNextTime,
       userTimezone
     });
+    const currentIntervalSentence = getFutureIntervalSentence(
+      8,
+      frequencyPref,
+      exampleIntervalStarting
+    );
     const yesBtn = {
       type: "button",
       action: `mem.check.yes`,
       text: "Yes",
       subject: "Yes, I remembered",
       body: `
-Your next reminer will be ${howFarInFuture} from today.
-<br /><br />
-Here is your current memorization schedule: ${getFutureIntervalSentence(
-        8,
-        frequencyPref,
-        exampleIntervalStarting
-      )} <br/><br />
-Each time you remember, you will move to the next further interval. Forgetting moves you one interval back.`
+Great! You remembered for ${howFarInFutureCurrent}. Now let's try ${howFarInFuture}.<br /><br />
+Here is your current memorization schedule: ${currentIntervalSentence}`
     };
 
     // User forgot
@@ -167,15 +124,10 @@ Each time you remember, you will move to the next further interval. Forgetting m
       type: "button",
       action: `mem.check.no`,
       text: "No",
-      subject: "No, let's try a sooner reminder",
+      subject: "Not quite",
       body: `
-Your next reminer will be on ${noFriendlyDate}, ${noHowFarInFuture} from today.
-<br /><br />
-On the current frequency settings, each time you remember, reminders will follow  this memorization schedule: ${getFutureIntervalSentence(
-        8,
-        frequencyPref,
-        reminderNum - 1
-      )}`
+No problem, we waited ${howFarInFutureCurrent} to send this reminder. Let's try ${noHowFarInFuture} for the next one.<br /><br />
+Here is your current memorization schedule: ${currentIntervalSentence} <br/><br />`
     };
 
     return [
@@ -201,7 +153,7 @@ On the current frequency settings, each time you remember, reminders will follow
       if (gopher.alreadyRan(handleDidYouRemember)) return next();
       const didYouRemember = gopher.action.split(".")[2];
       const reminderNum = gopher.webhook.getTaskData("mem.reminder_num", 0);
-      const frequencyPref = _getCurrentFrequencyPref(gopher);
+      const frequencyPref = getCurrentFrequencyPref(gopher);
 
       // Defense
       if (!["yes", "no"].includes(didYouRemember)) {
@@ -224,12 +176,10 @@ On the current frequency settings, each time you remember, reminders will follow
 
       // Reset reminders
       gopher.webhook.setTaskData("mem.repeat_last_reminder_ct", "no_reminders");
-      const statusMessage = `Reminder number incremented to ${updatedReminderNum}, next due ${nextReminder}, ${Date(
-        nextReminder
-      ).toLocaleUpperCase()}`;
 
+      // Tmp: Disable
+      const statusMessage = `Reminder number incremented to ${updatedReminderNum}, next due ${nextReminder}`;
       gopher.set("webhook.message", statusMessage);
-      // append proper data to memorization, even though the email can STILL be handled by handlers!!! Woot!!
     }
     next();
   }
@@ -239,37 +189,48 @@ On the current frequency settings, each time you remember, reminders will follow
    * @param {object} gopher
    */
   function renderMemorizationControls(gopher) {
-    const reminderCount = gopher.webhook.getTaskData("mem.reminder_num", 1);
-    const defaultFrequencyPref =
-      gopher.webhook.getExtensionData("mem.defaultFrequencyPref") ||
-      memConfig.defaultFrequencyPref;
-
-    const frequencyPref = gopher.webhook.getTaskData(
-      "mem.frequency_pref",
-      defaultFrequencyPref
-    );
-    const frequencyOptions = _getFrequencyOptions(gopher);
-    const nextReminder = gopher.get("task.trigger_time");
-
+    const reminderNum = gopher.webhook.getTaskData("mem.reminder_num", 0);
+    const frequencyPref = getCurrentFrequencyPref(gopher);
     const userTimezone = gopher.get("user.timezone", "GMT");
-    return memorizationControls(
-      frequencyPref,
-      reminderCount,
-      nextReminder,
-      userTimezone,
-      frequencyOptions
-    );
+    const unixTime = getNextInterval(reminderNum, frequencyPref);
+    const { timeFromNow: timeFromNowYes } = getFriendlyDates({
+      unixTime,
+      userTimezone
+    });
+    const frequencyOptions = getFrequencyOptions(gopher);
+    return [
+      {
+        type: "section",
+        text: "Memorization Schedule"
+      },
+      {
+        type: "html",
+        text: `Each time you successfully remember, reminders will follow the below schedule.`
+      },
+      {
+        type: "html",
+        text: renderFrequencyIllustration(
+          frequencyPref,
+          gopher.get("user.timezone"),
+          reminderNum
+        )
+      },
+      {
+        type: "section",
+        text: "Update Memorization Schedule"
+      },
+      ...changeFrequencyButtons(frequencyPref, frequencyOptions, reminderNum)
+    ];
   }
 
   /**
    * Handle change memorization frequency
    */
-  gopherApp.app.use(handleMemFreqChangeMiddleware);
-
-  function handleMemFreqChangeMiddleware(req, res, next) {
+  // gopherApp.app.use(handleMemorizationControls);
+  function handleMemorizationControls(req, res, next) {
     const gopher = res.locals.gopher;
     if (gopher.action && gopher.action.includes("mem.freq")) {
-      if (gopher.alreadyRan(handleMemFreqChangeMiddleware)) return next();
+      if (gopher.alreadyRan(handleMemorizationControls)) return next();
       const newFrequencyPref = gopher.action.split(".")[2].replace("-", ".");
       changeMemFrequency(gopher, newFrequencyPref);
       memorizeTask(gopher); // re-activates the task absed on current reminder-num
@@ -282,7 +243,8 @@ On the current frequency settings, each time you remember, reminders will follow
    * repeat_last_reminder_ct
    */
 
-  gopherApp.app.use(handleMemTrigMiddlware);
+  // top-level skill must activate this
+  // gopherApp.app.use(handleMemTrigMiddlware);
 
   function handleMemTrigMiddlware(req, res, next) {
     const gopher = res.locals.gopher;
@@ -366,43 +328,6 @@ On the current frequency settings, each time you remember, reminders will follow
     next();
   });
 
-  // Helpers / Private Methods
-
-  // Get the tasks' current frequency preference
-  function _getCurrentFrequencyPref(gopher) {
-    const defaultFrequencyPref =
-      gopher.webhook.getExtensionData("mem.defaultFrequencyPref") ||
-      memConfig.defaultFrequencyPref;
-
-    return gopher.webhook.getTaskData(
-      "mem.frequency_pref",
-      defaultFrequencyPref
-    );
-  }
-
-  /**
-   * Get frequency options from webhook or general config
-   * @param {object} gopher
-   */
-  function _getFrequencyOptions(gopher) {
-    const frequencyOptions = gopher.webhook.getExtensionData(
-      "mem.frequencyOptions",
-      gopher.config.frequencyOptions
-    );
-    if (typeof frequencyOptions === "string") {
-      return frequencyOptions.split(",");
-    } else if (frequencyOptions instanceof Array) {
-      return frequencyOptions;
-    } else {
-      console.warn(
-        "Frequency Options preference was an unsupported type: " +
-          typeof frequencyOptions +
-          "Returning default frequency options"
-      );
-      return gopher.config.frequencyOptions;
-    }
-  }
-
   return {
     memorizeTask,
     renderMemorizationControls,
@@ -413,6 +338,7 @@ On the current frequency settings, each time you remember, reminders will follow
     getMemInfo,
     memorizeTasksMiddleware,
     handleMemTrigMiddlware,
-    handleMemFreqChangeMiddleware
+    handleMemorizationControls,
+    getFriendlyDates
   };
 };
