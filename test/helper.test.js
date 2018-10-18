@@ -45,11 +45,11 @@ describe("UI Helpers", function() {
   it("shows a sentence with future date intervals", function(done) {
     // console.log(uiHelpers.getFutureIntervalSentence(10, 100, 0));
     expect(uiHelpers.getFutureIntervalSentence(10, 100, 0)).to.match(
-      /^23 hours, 5 days, 15 days/
+      /^1 day, 6 days, 16 days/
     );
-    expect(uiHelpers.getFutureIntervalSentence(10, 100, 1)).to.match(/^5 days/);
+    expect(uiHelpers.getFutureIntervalSentence(10, 100, 1)).to.match(/^6 days/);
     expect(uiHelpers.getFutureIntervalSentence(10, 100, 2)).to.match(
-      /^15 days/
+      /^16 days/
     );
     done();
   });

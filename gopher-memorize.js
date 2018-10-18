@@ -36,15 +36,9 @@ module.exports = function(gopherApp, instanceConfig) {
    */
   function memorizeTask(gopher) {
     const reminderNum = gopher.webhook.getTaskData("mem.reminder_num", 0);
-    const defaultFrequencyPref =
-      gopher.webhook.getExtensionData("mem.defaultFrequencyPref") ||
-      memConfig.defaultFrequencyPref;
-    const frequencyPref = gopher.webhook.getTaskData(
-      "mem.frequency_pref",
-      defaultFrequencyPref
-    );
-    gopher.webhook.setTaskData("mem.reminder_num", reminderNum);
+    const frequencyPref = getCurrentFrequencyPref(gopher);
     gopher.webhook.setTaskData("mem.frequency_pref", frequencyPref);
+    gopher.webhook.setTaskData("mem.reminder_num", reminderNum);
     gopher.webhook.setTaskData("mem.repeat_last_reminder_ct", "no_reminders");
     const nextReminder = getNextInterval(reminderNum, frequencyPref);
     gopher.webhook.setTriggerTimestamp(nextReminder);
@@ -106,8 +100,7 @@ module.exports = function(gopherApp, instanceConfig) {
       action: `mem.check.yes`,
       text: "Yes",
       subject: "Yes, I remembered",
-      body: `
-Great! We waited ${howFarInFutureCurrent} before sending this reminder. Now let's try ${howFarInFuture}.
+      body: `Great! We waited ${howFarInFutureCurrent} before sending this reminder. Now let's try ${howFarInFuture}.
 
 Here is your current memorization schedule: ${currentIntervalSentence}`
     };

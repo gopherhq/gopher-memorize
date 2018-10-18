@@ -67,6 +67,7 @@ describe("integration tests", function() {
     it("uses middleware to handle triggered tasks", async function() {
       const webhook = require("./_fixtures/memorizationTriggered.json");
       webhook.task.stored_data.mem.repeat_last_reminder_ct = "no_reminders";
+      gopherApp.app.use(memorize.handleMemTrigMiddlware);
       let res = await sendWebhook({ webhook });
       expect(res.body.task.stored_data.mem.repeat_last_reminder_ct).to.eq(0);
       webhook.task.stored_data.mem.repeat_last_reminder_ct = 1;
@@ -116,7 +117,7 @@ describe("integration tests", function() {
 
         gopher.webhook.setTaskData("mem.repeat_last_reminder_ct", 2);
         renderRepeatMessage = memorize.renderRepeatMessage(gopher);
-        expect(renderRepeatMessage.text).to.contain("1 more reminders");
+        expect(renderRepeatMessage.text).to.contain("1 more reminder");
 
         gopher.webhook.setTaskData("mem.repeat_last_reminder_ct", 3);
         renderRepeatMessage = memorize.renderRepeatMessage(gopher);
@@ -129,6 +130,7 @@ describe("integration tests", function() {
   describe("middleware", function() {
     it("handles the 'did you remember - yes no' email action", async function() {
       try {
+        gopherApp.app.use(memorize.handleDidYouRemember);
         const webhook = require("./_fixtures/memorizationCheck.json");
         const beforeTriggerTime = webhook.task.trigger_time || 0;
         const beforeReminderNum =
@@ -153,6 +155,7 @@ describe("integration tests", function() {
     });
 
     it("handles frequency updates", async function() {
+      gopherApp.app.use(memorize.handleMemorizationControls);
       const webhook = require("./_fixtures/freqUpdated.json");
       webhook.task.stored_data.mem.repeat_last_reminder_ct = 2;
       const res = await sendWebhook({ webhook });
