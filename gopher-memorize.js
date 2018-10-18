@@ -107,7 +107,7 @@ module.exports = function(gopherApp, instanceConfig) {
       text: "Yes",
       subject: "Yes, I remembered",
       body: `
-Great! You remembered for ${howFarInFutureCurrent}. Now let's try ${howFarInFuture}.
+Great! We waited ${howFarInFutureCurrent} before sending this reminder. Now let's try ${howFarInFuture}.
 
 Here is your current memorization schedule: ${currentIntervalSentence}`
     };
@@ -121,13 +121,25 @@ Here is your current memorization schedule: ${currentIntervalSentence}`
       unixTime: noNextTime,
       userTimezone
     });
+
+    let noMailtoBody;
+    if (reminderNum > 1) {
+      noMailtoBody = `No problem, we waited ${howFarInFutureCurrent} to send this reminder. Let's try ${noHowFarInFuture} for the next one.\n
+Here is your current memorization schedule: ${currentIntervalSentence}\n\n`;
+    } else if (reminderNum <= 1) {
+      noMailtoBody = `No problem. Hit send to schedule another reminder to arrive in ${howFarInFutureCurrent}. \n\nThis is the same \
+interval as your last reminder because you are at the shortest interval for your current memorization schedule.`;
+    } else {
+      console.error("unexpected reminder input");
+      noMailtoBody = `Something went wrong with your reminder. Can you please put "help+gopher@humans.fut.io" in the 'cc' field, then hit 'send'?\n\n`;
+    }
+
     const noBtn = {
       type: "button",
       action: `mem.check.no`,
       text: "No",
       subject: "Not quite",
-      body: `No problem, we waited ${howFarInFutureCurrent} to send this reminder. Let's try ${noHowFarInFuture} for the next one.\n
-Here is your current memorization schedule: ${currentIntervalSentence}\n\n`
+      body: noMailtoBody
     };
 
     return [
@@ -146,7 +158,8 @@ Here is your current memorization schedule: ${currentIntervalSentence}\n\n`
    * interaction with the user. It can do this by by calling
    * this handler: gopherApp.onAction(/^mem\.check/, (gopher) => {});
    */
-  gopherApp.app.use(handleDidYouRemember);
+  // Top-level skill handles
+  // gopherApp.app.use(handleDidYouRemember);
   function handleDidYouRemember(req, res, next) {
     const gopher = res.locals.gopher;
     if (gopher.action && gopher.action.includes("mem.check")) {
@@ -161,8 +174,9 @@ Here is your current memorization schedule: ${currentIntervalSentence}\n\n`
       }
 
       // Increment / decrement reminderNum, set next due date accordingly
-      const updatedReminderNum =
+      let updatedReminderNum =
         didYouRemember === "yes" ? reminderNum + 1 : reminderNum - 1;
+      updatedReminderNum = updatedReminderNum > 0 ? updatedReminderNum : 0; // must be positive
       gopher.webhook.setTaskData("mem.reminder_num", updatedReminderNum);
       const nextReminder = getNextInterval(updatedReminderNum, frequencyPref);
       gopher.webhook.setTriggerTimestamp(nextReminder);
@@ -226,6 +240,7 @@ Here is your current memorization schedule: ${currentIntervalSentence}\n\n`
   /**
    * Handle change memorization frequency
    */
+  // Top-level skill "uses" in their handler
   // gopherApp.app.use(handleMemorizationControls);
   function handleMemorizationControls(req, res, next) {
     const gopher = res.locals.gopher;
@@ -243,9 +258,8 @@ Here is your current memorization schedule: ${currentIntervalSentence}\n\n`
    * repeat_last_reminder_ct
    */
 
-  // top-level skill must activate this
+  // top-level skill must use middleware in the handler
   // gopherApp.app.use(handleMemTrigMiddlware);
-
   function handleMemTrigMiddlware(req, res, next) {
     const gopher = res.locals.gopher;
     if (
@@ -336,9 +350,10 @@ Here is your current memorization schedule: ${currentIntervalSentence}\n\n`
     changeFrequencyButtonsWithChart,
     changeMemFrequency,
     getMemInfo,
+    getFriendlyDates,
     memorizeTasksMiddleware,
     handleMemTrigMiddlware,
     handleMemorizationControls,
-    getFriendlyDates
+    handleDidYouRemember
   };
 };
