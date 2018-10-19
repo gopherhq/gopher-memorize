@@ -100,9 +100,9 @@ module.exports = function(gopherApp, instanceConfig) {
       action: `mem.check.yes`,
       text: "Yes",
       subject: "Yes, I remembered",
-      body: `Great! We waited ${howFarInFutureCurrent} before sending this reminder. Now let's try about ${howFarInFuture}.
+      body: `Great! ${howFarInFutureCurrent} passed since the previous reminder. The next will be scheduled around ${howFarInFuture} from now.
 
-Your reminder intervals move forward and back on this schedule as you memorize this email: ${currentIntervalSentence}`
+Your reminder intervals move along this schedule as you begin to memorize this email: ${currentIntervalSentence}`
     };
 
     // User forgot
@@ -117,8 +117,8 @@ Your reminder intervals move forward and back on this schedule as you memorize t
 
     let noMailtoBody;
     if (reminderNum >= 1) {
-      noMailtoBody = `No problem, we waited ${howFarInFutureCurrent} to send this reminder. Let's try about ${noHowFarInFuture} for the next one.\n
-Your reminder intervals move forward and back on this schedule as you memorize this email: ${currentIntervalSentence}\n\n`;
+      noMailtoBody = `No problem, we waited ${howFarInFutureCurrent} to send this reminder. The next one will be about ${noHowFarInFuture} from now.\n
+Your reminder intervals move along this schedule as you begin to memorize this email: ${currentIntervalSentence}\n\n`;
     } else if (reminderNum < 1) {
       noMailtoBody = `No problem. Hit send to schedule another reminder to arrive in ${howFarInFutureCurrent}. \n\nThis is the same \
 interval as your last reminder because you are at the shortest interval for your current memorization schedule.`;
@@ -212,7 +212,7 @@ interval as your last reminder because you are at the shortest interval for your
       },
       {
         type: "html",
-        text: `As you being to memorize this, reminders arrive less frequently (shown below). If you start to forget reminders arrive more frequently.`
+        text: `Reminders will arrive less frequently as you begin to memorize this email.`
       },
       {
         type: "html",
