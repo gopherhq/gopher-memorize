@@ -34,8 +34,8 @@ describe("integration tests", function() {
         const app = gopherApp.exportApp();
         const res = await sendWebhook({ app, webhook });
         expect(res.body.task.trigger_time).to.be.gt(Date.now() / 1000);
-        expect(res.body.task.stored_data.mem.reminder_num).to.eq(0);
-        expect(res.body.task.stored_data.mem.frequency_pref).to.eq(100);
+        expect(res.body.task.stored_data.mem.reminder_num).to.eq(2);
+        expect(res.body.task.stored_data.mem.frequency_pref).to.eq(8);
         expect(res.body.task.stored_data.mem.repeat_last_reminder_ct).to.eq(
           "no_reminders"
         );
@@ -57,8 +57,8 @@ describe("integration tests", function() {
       const app = gopherApp.exportApp();
       const res = await sendWebhook({ app, webhook });
       expect(res.body.task.trigger_time).to.be.gt(Date.now() / 1000);
-      expect(res.body.task.stored_data.mem.reminder_num).to.eq(0);
-      expect(res.body.task.stored_data.mem.frequency_pref).to.eq(100);
+      expect(res.body.task.stored_data.mem.reminder_num).to.eq(2);
+      expect(res.body.task.stored_data.mem.frequency_pref).to.eq(8);
       expect(res.body.task.stored_data.mem.repeat_last_reminder_ct).to.eq(
         "no_reminders"
       );

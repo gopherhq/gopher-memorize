@@ -3,6 +3,8 @@ const { getIntervalDescription } = require("../lib/ui-helpers");
 
 module.exports = function(gopherApp) {
   gopherApp.onSettingsViewed(gopher => {
+    const storedData = gopher.webhook.getExtensionData("mem");
+
     const settingsPage = gopher.webhook.settingsPage({
       namespace: "mem",
       title: "Memorization Settings",
@@ -17,6 +19,10 @@ module.exports = function(gopherApp) {
       helpText: `Start memorizations using this frequency`
     });
 
+    // User can restore defaults by emptying the text input
+    if (storedData.frequencyOptions === "") {
+      storedData.frequencyOptions = String(getFrequencyOptions(gopher));
+    }
     settingsPage.input({
       name: "frequencyOptions",
       title: "Frequency Options",
@@ -28,7 +34,7 @@ module.exports = function(gopherApp) {
       submitText: "Save Settings"
     });
 
-    settingsPage.populate(gopher.webhook.getExtensionData("mem"));
+    settingsPage.populate(storedData);
 
     const preferenceDescriptions = getFrequencyOptions(gopher)
       .map(pref => getIntervalDescription(pref))

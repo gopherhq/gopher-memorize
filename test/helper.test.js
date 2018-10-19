@@ -29,12 +29,29 @@ describe("date helpers", function() {
     done();
   });
 
+  // This is an internal tool to help find the default memorization settings
+  it.skip("logs interval options", done => {
+    let intervals;
+    function printIntervals(pref) {
+      intervals = memUtils.getFutureIntervals(10, pref);
+      // See memorization intervals
+      console.log(
+        intervals.map(
+          interval =>
+            memUtils.getFriendlyDates({ unixTime: interval }).daysInFuture
+        )
+      );
+    }
+    // We're staring from reminderNum 3 (4th element)
+    [2, 4, 6, 8, 20, 40, 100].map(printIntervals);
+
+    // expect(intervals[0]).to.be.above(Date.now() / 1000);
+    // expect(intervals[0]).to.be.above(Date.now() / 1000);
+    done();
+  });
+
   it("shows a series of future reminders", done => {
-    let intervals = memUtils.getFutureIntervals(10, 0.1);
-    // See memorization intervals
-    // console.log(
-    //   intervals.map(interval => memUtils.getFriendlyDates(interval).daysInFuture)
-    // );
+    const intervals = memUtils.getFutureIntervals(10, 10);
     expect(intervals[0]).to.be.above(Date.now() / 1000);
     expect(intervals[0]).to.be.above(Date.now() / 1000);
     done();

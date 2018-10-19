@@ -35,7 +35,7 @@ module.exports = function(gopherApp, instanceConfig) {
    * @param {object} gopher
    */
   function memorizeTask(gopher) {
-    const reminderNum = gopher.webhook.getTaskData("mem.reminder_num", 0);
+    const reminderNum = gopher.webhook.getTaskData("mem.reminder_num", 2);
     const frequencyPref = getCurrentFrequencyPref(gopher);
     gopher.webhook.setTaskData("mem.frequency_pref", frequencyPref);
     gopher.webhook.setTaskData("mem.reminder_num", reminderNum);
@@ -100,9 +100,9 @@ module.exports = function(gopherApp, instanceConfig) {
       action: `mem.check.yes`,
       text: "Yes",
       subject: "Yes, I remembered",
-      body: `Great! We waited ${howFarInFutureCurrent} before sending this reminder. Now let's try ${howFarInFuture}.
+      body: `Great! We waited ${howFarInFutureCurrent} before sending this reminder. Now let's try about ${howFarInFuture}.
 
-Here is your current memorization schedule: ${currentIntervalSentence}`
+Your reminder intervals move forward and back on this schedule as you memorize this email: ${currentIntervalSentence}`
     };
 
     // User forgot
@@ -116,10 +116,10 @@ Here is your current memorization schedule: ${currentIntervalSentence}`
     });
 
     let noMailtoBody;
-    if (reminderNum > 1) {
-      noMailtoBody = `No problem, we waited ${howFarInFutureCurrent} to send this reminder. Let's try ${noHowFarInFuture} for the next one.\n
-Here is your current memorization schedule: ${currentIntervalSentence}\n\n`;
-    } else if (reminderNum <= 1) {
+    if (reminderNum >= 1) {
+      noMailtoBody = `No problem, we waited ${howFarInFutureCurrent} to send this reminder. Let's try about ${noHowFarInFuture} for the next one.\n
+Your reminder intervals move forward and back on this schedule as you memorize this email: ${currentIntervalSentence}\n\n`;
+    } else if (reminderNum < 1) {
       noMailtoBody = `No problem. Hit send to schedule another reminder to arrive in ${howFarInFutureCurrent}. \n\nThis is the same \
 interval as your last reminder because you are at the shortest interval for your current memorization schedule.`;
     } else {
@@ -212,7 +212,7 @@ interval as your last reminder because you are at the shortest interval for your
       },
       {
         type: "html",
-        text: `Each time you successfully remember, reminders will follow the below schedule.`
+        text: `As you being to memorize this, reminders arrive less frequently (shown below). If you start to forget reminders arrive more frequently.`
       },
       {
         type: "html",
