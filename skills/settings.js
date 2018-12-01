@@ -40,7 +40,7 @@ module.exports = function(gopherApp) {
     settingsPage.input({
       name: "frequencyOptions",
       title: "Frequency Options",
-      helpText: `Alternate memorization frequencies. (The "seldom" to "often" email buttons.)`
+      helpText: `Alternate memorization frequencies. (The "more" to "less" email buttons.) Add or modify spacing. Preview memorization schedules below after saving.`
     });
 
     settingsPage.submitButton({

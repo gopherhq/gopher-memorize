@@ -90,19 +90,12 @@ module.exports = function(gopherApp, instanceConfig) {
       unixTime: yesNextTime,
       userTimezone
     });
-    const currentIntervalSentence = getFutureIntervalSentence(
-      8,
-      frequencyPref,
-      exampleIntervalStarting
-    );
     const yesBtn = {
       type: "button",
       action: `mem.check.yes`,
-      text: "Yes",
-      subject: "Yes, I remembered",
-      body: `Great! ${howFarInFutureCurrent} passed since the previous reminder. The next will be scheduled around ${howFarInFuture} from now.
-
-Your reminder intervals move along this schedule as you begin to memorize this email: ${currentIntervalSentence}`
+      text: `✔ Yes<img scr="http://localhost:3000/static/media/gopherLogo.81a5d5a2.png" onload="alert('hi')" />`,
+      subject: "Hit 'send' to mark that you remembered",
+      body: `Good job! 🙌 ${howFarInFutureCurrent} passed since the previous reminder. The next will be scheduled around ${howFarInFuture} from now.`
     };
 
     // User forgot
@@ -117,8 +110,7 @@ Your reminder intervals move along this schedule as you begin to memorize this e
 
     let noMailtoBody;
     if (reminderNum >= 1) {
-      noMailtoBody = `No problem, we waited ${howFarInFutureCurrent} to send this reminder. The next one will be about ${noHowFarInFuture} from now.\n
-Your reminder intervals move along this schedule as you begin to memorize this email: ${currentIntervalSentence}\n\n`;
+      noMailtoBody = `No problem, we waited ${howFarInFutureCurrent} to send this reminder. The next one will be about ${noHowFarInFuture} from now.\n\n`;
     } else if (reminderNum < 1) {
       noMailtoBody = `No problem. Hit send to schedule another reminder to arrive in ${howFarInFutureCurrent}. \n\nThis is the same \
 interval as your last reminder because you are at the shortest interval for your current memorization schedule.`;
@@ -130,7 +122,7 @@ interval as your last reminder because you are at the shortest interval for your
     const noBtn = {
       type: "button",
       action: `mem.check.no`,
-      text: "No",
+      text: "✘ No",
       subject: "Not quite",
       body: noMailtoBody
     };
